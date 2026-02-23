@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ImgGen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080810;
+    --panel: #0e0e1c;
+    --border: #1e1e3a;
+    --accent: #6655ff;
+    --accent2: #ff5599;
+    --text: #c8c8e8;
+    --muted: #555577;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  header .logo-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+  }
+
+  header h1 {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  header .version {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: rgba(102,85,255,0.1);
+    border: 1px solid rgba(102,85,255,0.2);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  header .tagline {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+
+  /* ── WORKSPACE ── */
+  .workspace {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    flex: 1;
+    height: calc(100vh - 57px);
+  }
+
+  /* ── LEFT PANEL ── */
+  .left {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+  }
+
+  .panel-header {
+    padding: 12px 20px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .panel-header .line-count {
+    color: var(--accent);
+  }
+
+  textarea#code {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 2;
+    color: #a0d0ff;
+    padding: 18px 20px;
+    caret-color: var(--accent);
+    tab-size: 2;
+  }
+
+  textarea#code::placeholder { color: #2a2a44; }
+  textarea#code::selection { background: rgba(102,85,255,0.25); }
+
+  /* ── ACTIONS ── */
+  .actions {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  button {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 10px 18px;
+    transition: all 0.15s;
+  }
+
+  .btn-run {
+    background: var(--accent);
+    color: #fff;
+    flex: 1;
+    box-shadow: 0 0 20px rgba(102,85,255,0.25);
+  }
+  .btn-run:hover { background: #7766ff; box-shadow: 0 0 28px rgba(102,85,255,0.45); }
+  .btn-run:active { transform: scale(0.98); }
+
+  .btn-clear {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-clear:hover { color: var(--text); border-color: var(--muted); }
+
+  .btn-save {
+    background: transparent;
+    color: var(--accent2);
+    border: 1px solid rgba(255,85,153,0.4);
+  }
+  .btn-save:hover {
+    background: rgba(255,85,153,0.08);
+    box-shadow: 0 0 15px rgba(255,85,153,0.2);
+  }
+
+  /* ── DOCS / CHEATSHEET ── */
+  .docs {
+    border-top: 1px solid var(--border);
+    background: #090914;
+    padding: 10px 18px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .docs-title {
+    font-size: 8px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #333355;
+    margin-bottom: 2px;
+  }
+
+  .docs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px 16px;
+  }
+
+  .doc-row { display: flex; gap: 6px; align-items: baseline; }
+  .doc-cmd { color: var(--accent); font-weight: 700; min-width: 14px; }
+  .doc-args { color: #445566; }
+  .doc-comment { color: #33aa77; }
+
+  /* ── RIGHT PANEL ── */
+  .right {
+    display: flex;
+    flex-direction: column;
+    background:
+      radial-gradient(ellipse at 15% 15%, rgba(102,85,255,0.04) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 85%, rgba(255,85,153,0.03) 0%, transparent 55%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px);
+  }
+
+  .canvas-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    overflow: hidden;
+  }
+
+  #output {
+    border-radius: 3px;
+    box-shadow:
+      0 0 0 1px rgba(102,85,255,0.15),
+      0 24px 70px rgba(0,0,0,0.85),
+      0 0 80px rgba(102,85,255,0.07);
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: box-shadow 0.3s;
+  }
+
+  #output:hover {
+    box-shadow:
+      0 0 0 1px rgba(102,85,255,0.35),
+      0 24px 70px rgba(0,0,0,0.85),
+      0 0 100px rgba(102,85,255,0.14);
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    padding: 9px 24px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-shrink: 0;
+    background: var(--panel);
+  }
+
+  .status-bar .ok  { color: #44dd88; }
+  .status-bar .err { color: #ff4466; }
+  .status-bar .warn { color: #ffaa44; }
+
+  #dims { margin-left: auto; }
+
+  /* ── SCROLLBAR ── */
+  textarea::-webkit-scrollbar { width: 4px; }
+  textarea::-webkit-scrollbar-track { background: transparent; }
+  textarea::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-dot"></div>
+  <h1>ImgGen</h1>
+  <span class="version">v2.0</span>
+  <span class="tagline">Visual Language Renderer</span>
+</header>
+
+<div class="workspace">
+
+  <!-- LEFT: Editor -->
+  <div class="left">
+    <div class="panel-header">
+      <span>Source</span>
+      <span class="line-count" id="line-count">0 lines</span>
+    </div>
+
+    <textarea id="code" spellcheck="false" placeholder="# Start writing..."></textarea>
+
+    <div class="actions">
+      <button class="btn-run" id="btn-run">▶ Render</button>
+      <button class="btn-clear" id="btn-clear">Clear</button>
+      <button class="btn-save" id="btn-save">↓ PNG</button>
+    </div>
+
+    <div class="docs">
+      <div class="docs-title">Cheatsheet — leave a blank line between elements</div>
+      <div class="docs-grid">
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Canvas -->
+  <div class="right">
+    <div class="canvas-wrap">
+      <canvas id="output" width="500" height="500"></canvas>
+    </div>
+    <div class="status-bar">
+      <span id="status">Ready — press Render or Ctrl+Enter</span>
+      <span id="dims">500 × 500</span>
+    </div>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
