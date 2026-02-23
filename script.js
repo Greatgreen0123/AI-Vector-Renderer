@@ -307,9 +307,8 @@ codeEl.addEventListener('keydown', e => {
   }
 });
 
+
 // ── INIT ──────────────────────────────────────────────────────────────────
 
-document.fonts.ready.then(() => {
-  buildCheatsheet();
-  run();
-});
+buildCheatsheet();
+document.fonts.ready.then(run).catch(run);
