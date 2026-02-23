@@ -20,14 +20,15 @@ const COMMANDS = [
   ['#', 'comment — ignored',                        'doc-comment'],
 ];
 
-function buildCheatsheet() {
-  document.getElementById('docs-grid').innerHTML = COMMANDS
-    .map(([cmd, args, cls]) =>
-      `<div class="doc-row">
-        <span class="${cls || 'doc-cmd'}">${cmd}</span>
-        <span class="doc-args">${args}</span>
-      </div>`
-    ).join('');
+function populateCheatsheet() {
+  let html = '';
+  for (let i = 0; i < COMMANDS.length; i++) {
+    const cmd  = COMMANDS[i][0];
+    const args = COMMANDS[i][1];
+    const cls  = COMMANDS[i][2] ? COMMANDS[i][2] : 'doc-cmd';
+    html += '<div class="doc-row"><span class="' + cls + '">' + cmd + '</span><span class="doc-args">' + args + '</span></div>';
+  }
+  document.getElementById('docs-grid').innerHTML = html;
 }
 
 // ── DEFAULT DEMO ─────────────────────────────────────────────────────────
@@ -310,5 +311,5 @@ codeEl.addEventListener('keydown', e => {
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 
-buildCheatsheet();
+populateCheatsheet();
 document.fonts.ready.then(run).catch(run);
