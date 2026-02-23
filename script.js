@@ -10,23 +10,24 @@ const lineCountEl = document.getElementById('line-count');
 // ── CHEATSHEET — auto-generated ──────────────────────────────────────────
 
 const COMMANDS = [
-  ['C', 'w h border bCol bgCol',                    null],
-  ['r', 'x y w h thick bCol fill [opacity]',        null],
-  ['c', 'x y r thick bCol fill [opacity]',          null],
-  ['e', 'x y rx ry thick bCol fill [opacity]',      null],
-  ['a', 'x y r start end thick bCol fill [opacity]',null],
-  ['t', '"text" x y size col style(0-3) [opacity]', null],
-  ['l', 'x y x2 y2 thick col [opacity]',            null],
-  ['#', 'comment — ignored',                        'doc-comment'],
+  ['C', 'Canvas',   'w h border bCol bgCol',                     null],
+  ['r', 'Rect',     'x y w h thick bCol fill [opacity]',         null],
+  ['c', 'Circle',   'x y r thick bCol fill [opacity]',           null],
+  ['e', 'Ellipse',  'x y rx ry thick bCol fill [opacity]',       null],
+  ['a', 'Arc',      'x y r start end thick bCol fill [opacity]', null],
+  ['t', 'Text',     '"text" x y size col style(0-3) [opacity]',  null],
+  ['l', 'Line',     'x y x2 y2 thick col [opacity]',             null],
+  ['#', 'Comment',  'ignored',                                   'doc-comment'],
 ];
 
 function populateCheatsheet() {
   let html = '';
   for (let i = 0; i < COMMANDS.length; i++) {
-    const cmd  = COMMANDS[i][0];
-    const args = COMMANDS[i][1];
-    const cls  = COMMANDS[i][2] ? COMMANDS[i][2] : 'doc-cmd';
-    html += '<div class="doc-row"><span class="' + cls + '">' + cmd + '</span><span class="doc-args">' + args + '</span></div>';
+    const cmd   = COMMANDS[i][0];
+    const label = COMMANDS[i][1];
+    const args  = COMMANDS[i][2];
+    const cls   = COMMANDS[i][3] ? COMMANDS[i][3] : 'doc-cmd';
+    html += '<div class="doc-row"><span class="' + cls + '">' + cmd + '</span><span class="doc-label">' + label + '</span><span class="doc-args">' + args + '</span></div>';
   }
   document.getElementById('docs-grid').innerHTML = html;
 }
