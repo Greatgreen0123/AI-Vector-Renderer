@@ -21,17 +21,13 @@ const COMMANDS = [
 ];
 
 function buildCheatsheet() {
-  const grid = document.getElementById('docs-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  COMMANDS.forEach(([cmd, args, cls]) => {
-    const row = document.createElement('div');
-    row.className = 'doc-row';
-    row.innerHTML =
-      `<span class="${cls || 'doc-cmd'}">${cmd}</span>` +
-      `<span class="doc-args">${args}</span>`;
-    grid.appendChild(row);
-  });
+  document.getElementById('docs-grid').innerHTML = COMMANDS
+    .map(([cmd, args, cls]) =>
+      `<div class="doc-row">
+        <span class="${cls || 'doc-cmd'}">${cmd}</span>
+        <span class="doc-args">${args}</span>
+      </div>`
+    ).join('');
 }
 
 // ── DEFAULT DEMO ─────────────────────────────────────────────────────────
