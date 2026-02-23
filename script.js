@@ -1,44 +1,72 @@
-// ── ImgGen Renderer v2.0 ──────────────────────────────────────────────────
+// ── ImgGen Renderer v2.1 ──────────────────────────────────────────────────
 
-const canvas  = document.getElementById('output');
-const ctx     = canvas.getContext('2d');
-const codeEl  = document.getElementById('code');
-const statusEl  = document.getElementById('status');
-const dimsEl    = document.getElementById('dims');
+const canvas      = document.getElementById('output');
+const ctx         = canvas.getContext('2d');
+const codeEl      = document.getElementById('code');
+const statusEl    = document.getElementById('status');
+const dimsEl      = document.getElementById('dims');
 const lineCountEl = document.getElementById('line-count');
+
+// ── CHEATSHEET — auto-generated ──────────────────────────────────────────
+
+const COMMANDS = [
+  ['C', 'w h border bCol bgCol',                    null],
+  ['r', 'x y w h thick bCol fill [opacity]',        null],
+  ['c', 'x y r thick bCol fill [opacity]',          null],
+  ['e', 'x y rx ry thick bCol fill [opacity]',      null],
+  ['a', 'x y r start end thick bCol fill [opacity]',null],
+  ['t', '"text" x y size col style(0-3) [opacity]', null],
+  ['l', 'x y x2 y2 thick col [opacity]',            null],
+  ['#', 'comment — ignored',                        'doc-comment'],
+];
+
+function buildCheatsheet() {
+  const grid = document.getElementById('docs-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  COMMANDS.forEach(([cmd, args, cls]) => {
+    const row = document.createElement('div');
+    row.className = 'doc-row';
+    row.innerHTML =
+      `<span class="${cls || 'doc-cmd'}">${cmd}</span>` +
+      `<span class="doc-args">${args}</span>`;
+    grid.appendChild(row);
+  });
+}
 
 // ── DEFAULT DEMO ─────────────────────────────────────────────────────────
 
-const DEMO = `# ImgGen v2.0 — Logo Demo
+const DEMO = `# ImgGen v2.1 — opacity demo
 
 C 500 500 0 #000000 #0a0a18
 
-# Background rect
+# Background
 r 0 0 500 500 0 #000000 #0d0d20
 
-# Outer glow ring
+# Outer ring
 e 250 250 200 190 2 #3322aa #111133
 
 # Inner dark ellipse
 e 250 250 155 145 0 #000000 #080814
 
-# Decorative arc — top
+# Arcs
 a 250 250 170 200 340 2 #6655ff none
-
-# Decorative arc — bottom
 a 250 250 170 20 160 2 #ff5599 none
 
-# Centre circle
+# Soft overlay circle — semi-transparent
+c 250 250 130 0 #000000 #6655ff 0.07
+
+# Centre dot
 c 250 250 12 0 #000000 #6655ff
 
-# Main title — bold
+# Title — bold
 t "IMGGEN" 250 238 42 #ffffff 1
 
-# Subtitle — italic
-t "Visual Language" 250 282 14 #7766cc 2
+# Subtitle — italic, faded
+t "Visual Language" 250 282 14 #7766cc 2 0.8
 
-# Bottom tag — normal
-t "v2.0" 250 310 11 #444466 0
+# Version — very faded
+t "v2.1" 250 310 11 #444466 0 0.6
 
 # Base line
 l 160 335 340 335 1 #3322aa
@@ -53,13 +81,14 @@ updateLineCount();
 // ── HELPERS ──────────────────────────────────────────────────────────────
 
 function updateLineCount() {
-  const n = codeEl.value.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length;
+  const n = codeEl.value
+    .split('\n')
+    .filter(l => l.trim() && !l.trim().startsWith('#'))
+    .length;
   lineCountEl.textContent = `${n} lines`;
 }
 
-/**
- * Tokenise a line respecting "quoted strings" as single tokens.
- */
+/** Tokenise a line — respects "quoted strings" as single tokens. */
 function tokenize(line) {
   const tokens = [];
   let i = 0;
@@ -91,17 +120,26 @@ function styleString(styleCode, size) {
   }
 }
 
+/**
+ * Parse opacity — optional last token, defaults to 1.
+ * Clamps to 0–1 range.
+ */
+function parseOpacity(tok) {
+  if (tok === undefined || tok === null) return 1;
+  const n = parseFloat(tok);
+  if (isNaN(n)) return 1;
+  return Math.min(1, Math.max(0, n));
+}
+
 // ── RENDER ────────────────────────────────────────────────────────────────
 
 function run() {
   const lines = codeEl.value.split('\n');
-  let ok = 0, errors = 0, skipped = 0;
+  let ok = 0, errors = 0;
 
   lines.forEach((raw, lineIdx) => {
     const line = raw.trim();
-
-    // blank lines & comments
-    if (!line || line.startsWith('#')) { skipped++; return; }
+    if (!line || line.startsWith('#')) return;
 
     const tok = tokenize(line);
     if (!tok.length) return;
@@ -113,14 +151,13 @@ function run() {
 
       switch (cmd) {
 
-        // ── CANVAS ────────────────────────────────────────────────────
-        // C width height border-size border-colour bg-colour
+        // C w h border-size border-colour bg-colour
+        // No opacity — canvas is the root
         case 'C': {
           const [, w, h, bs, bc, bg] = tok;
           canvas.width  = +w;
           canvas.height = +h;
           dimsEl.textContent = `${w} × ${h}`;
-
           if (+bs > 0) {
             ctx.fillStyle = bc;
             ctx.fillRect(0, 0, +w, +h);
@@ -132,10 +169,10 @@ function run() {
           break;
         }
 
-        // ── RECT ──────────────────────────────────────────────────────
-        // r x y w h border-thickness border-colour fill
+        // r x y w h border-thickness border-colour fill [opacity]
         case 'r': {
-          const [, x, y, w, h, bt, bc, fill] = tok;
+          const [, x, y, w, h, bt, bc, fill, op] = tok;
+          ctx.globalAlpha = parseOpacity(op);
           if (fill && fill !== 'none') {
             ctx.fillStyle = fill;
             ctx.fillRect(+x, +y, +w, +h);
@@ -149,10 +186,10 @@ function run() {
           break;
         }
 
-        // ── CIRCLE ────────────────────────────────────────────────────
-        // c x y r border-size border-colour fill
+        // c x y r border-size border-colour fill [opacity]
         case 'c': {
-          const [, x, y, r, bs, bc, fill] = tok;
+          const [, x, y, r, bs, bc, fill, op] = tok;
+          ctx.globalAlpha = parseOpacity(op);
           ctx.beginPath();
           ctx.arc(+x, +y, +r, 0, Math.PI * 2);
           if (fill && fill !== 'none') { ctx.fillStyle = fill; ctx.fill(); }
@@ -161,10 +198,10 @@ function run() {
           break;
         }
 
-        // ── ELLIPSE ───────────────────────────────────────────────────
-        // e x y rx ry border-thickness border-colour fill
+        // e x y rx ry border-thickness border-colour fill [opacity]
         case 'e': {
-          const [, x, y, rx, ry, bt, bc, fill] = tok;
+          const [, x, y, rx, ry, bt, bc, fill, op] = tok;
+          ctx.globalAlpha = parseOpacity(op);
           ctx.beginPath();
           ctx.ellipse(+x, +y, +rx, +ry, 0, 0, Math.PI * 2);
           if (fill && fill !== 'none') { ctx.fillStyle = fill; ctx.fill(); }
@@ -173,10 +210,10 @@ function run() {
           break;
         }
 
-        // ── ARC ───────────────────────────────────────────────────────
-        // a x y r startDeg endDeg border-thickness border-colour fill
+        // a x y r startDeg endDeg border-thickness border-colour fill [opacity]
         case 'a': {
-          const [, x, y, r, start, end, bt, bc, fill] = tok;
+          const [, x, y, r, start, end, bt, bc, fill, op] = tok;
+          ctx.globalAlpha = parseOpacity(op);
           ctx.beginPath();
           ctx.arc(+x, +y, +r, deg(+start), deg(+end));
           if (fill && fill !== 'none') {
@@ -192,10 +229,10 @@ function run() {
           break;
         }
 
-        // ── TEXT ──────────────────────────────────────────────────────
-        // t "text" x y size colour style(0=normal 1=bold 2=italic 3=both)
+        // t "text" x y size colour style(0-3) [opacity]
         case 't': {
-          const [, text, x, y, size, colour, style = '0'] = tok;
+          const [, text, x, y, size, colour, style = '0', op] = tok;
+          ctx.globalAlpha  = parseOpacity(op);
           ctx.font         = styleString(style, +size);
           ctx.fillStyle    = colour;
           ctx.textAlign    = 'center';
@@ -205,10 +242,10 @@ function run() {
           break;
         }
 
-        // ── LINE ──────────────────────────────────────────────────────
-        // l x y x2 y2 thickness colour
+        // l x y x2 y2 thickness colour [opacity]
         case 'l': {
-          const [, x, y, x2, y2, thick, colour] = tok;
+          const [, x, y, x2, y2, thick, colour, op] = tok;
+          ctx.globalAlpha = parseOpacity(op);
           ctx.beginPath();
           ctx.moveTo(+x, +y);
           ctx.lineTo(+x2, +y2);
@@ -225,7 +262,7 @@ function run() {
           errors++;
       }
 
-      ctx.restore();
+      ctx.restore(); // resets globalAlpha back to 1 each element
     } catch (err) {
       console.error(`Line ${lineIdx + 1} error:`, err);
       errors++;
@@ -233,7 +270,6 @@ function run() {
     }
   });
 
-  // Status
   if (errors === 0) {
     statusEl.innerHTML = `<span class="ok">✓ Rendered ${ok} elements</span>`;
   } else {
@@ -268,7 +304,6 @@ document.getElementById('btn-save').addEventListener('click', saveImg);
 
 codeEl.addEventListener('input', updateLineCount);
 
-// Ctrl+Enter / Cmd+Enter to render
 codeEl.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault();
@@ -278,4 +313,7 @@ codeEl.addEventListener('keydown', e => {
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 
-document.fonts.ready.then(() => run());
+document.fonts.ready.then(() => {
+  buildCheatsheet();
+  run();
+});
